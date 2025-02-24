@@ -8,7 +8,7 @@
 
 ## Overview
 
-A sophisticated options pricing tool implementing the Black-Scholes model for European-style options. This calculator provides accurate theoretical prices and risk metrics for call and put options across multiple international markets, with support for customizable parameters.
+A simple options pricer implementing the Black-Scholes model for European-style options. This calculator provides accurate theoretical prices and risk metrics for call and put options across multiple international markets.
 
 ## Key Features
 
@@ -58,35 +58,6 @@ Follow the interactive prompts to:
 5. Choose between long or short position
 6. View optional Greeks evolution graphs
 
-## Example Output
-
-```
-Select market code (e.g., US, PA, LSE): US
-Enter the stock symbol for US Markets: AAPL
-Enter the time to expiration in months: 3
-Current price: $175.50
-Enter the strike price ($): 180
-
-Results:
---------------------------------------------------
-Historical Volatility: 27.32%
-Risk-free Rate: 4.50%
-
-Option Prices:
-Call: $10.24
-Put: $12.87
-
-Greeks:
-Call Delta: 0.4825
-Put Delta: -0.5175
-Gamma: 0.0162
-Call Theta: $-0.0843
-Put Theta: $-0.0352
-Vega: $0.2718
-Call Rho: 0.1483
-Put Rho: -0.2391
-```
-
 ## Model Details
 
 The Black-Scholes model calculates option prices using five key inputs:
@@ -104,4 +75,3 @@ The Black-Scholes model calculates option prices using five key inputs:
 - Uses approximate risk-free rates rather than real-time market data
 - Assumes log-normal distribution of stock prices
 
-#
