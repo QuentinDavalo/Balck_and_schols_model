@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 
 # Exchange dictionary
 EXCHANGES = {
-    'US': {'suffix': '', 'currency': '$', 'name': 'US Markets'},
-    'PA': {'suffix': '.PA', 'currency': '€', 'name': 'Euronext Paris'},
-    'AS': {'suffix': '.AS', 'currency': '€', 'name': 'Euronext Amsterdam'},
-    'BR': {'suffix': '.BR', 'currency': '€', 'name': 'Euronext Brussels'},
-    'LI': {'suffix': '.LI', 'currency': '€', 'name': 'Euronext Lisbon'},
-    'LSE': {'suffix': '.L', 'currency': '£', 'name': 'London Stock Exchange'},
-    'DE': {'suffix': '.DE', 'currency': '€', 'name': 'Deutsche Börse'},
-    'MI': {'suffix': '.MI', 'currency': '€', 'name': 'Borsa Italiana'},
-    'MC': {'suffix': '.MC', 'currency': '€', 'name': 'Bolsa de Madrid'},
+'US': {'suffix': '', 'currency': '$', 'name': 'US Markets'},
+'PA': {'suffix': '.PA', 'currency': '€', 'name': 'Euronext Paris'},
+'AS': {'suffix': '.AS', 'currency': '€', 'name': 'Euronext Amsterdam'},
+'BR': {'suffix': '.BR', 'currency': '€', 'name': 'Euronext Brussels'},
+'LI': {'suffix': '.LI', 'currency': '€', 'name': 'Euronext Lisbon'},
+'LSE': {'suffix': '.L', 'currency': '£', 'name': 'London Stock Exchange'},
+'DE': {'suffix': '.DE', 'currency': '€', 'name': 'Deutsche Börse'},
+'MI': {'suffix': '.MI', 'currency': '€', 'name': 'Borsa Italiana'}
+'MC': {'suffix': '.MC', 'currency': '€', 'name': 'Bolsa de Madrid'},
 }
 
 
@@ -297,17 +297,17 @@ def calculate_historical_volatility(stock_data, window=252):
 
 
 def get_risk_free_rate(exchange):
-    """Approximate risk-free rate"""
+    """Average risk-free rate as of 20/02/2025"""
     rates = {
-        'US': 0.05,
-        'PA': 0.03,
-        'AS': 0.03,
-        'BR': 0.03,
-        'LI': 0.03,
-        'LSE': 0.04,
-        'DE': 0.03,
-        'MI': 0.03,
-        'MC': 0.03
+        'US': 0.045,  # 4.5% for US Treasury
+        'PA': 0.035,  # 3.5% for France
+        'AS': 0.030,  # 3.0% for Netherlands
+        'BR': 0.033,  # 3.3% for Belgium
+        'LI': 0.037,  # 3.7% for Portugal
+        'LSE': 0.040,  # 4.0% for UK
+        'DE': 0.025,  # 2.5% for Germany
+        'MI': 0.042,  # 4.2% for Italy
+        'MC': 0.038  # 3.8% for Spain
     }
     return rates.get(exchange, 0.04)
 
