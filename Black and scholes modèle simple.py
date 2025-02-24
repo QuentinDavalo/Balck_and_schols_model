@@ -3,7 +3,7 @@ import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
 
-# Previous exchange dictionary remains the same
+# Exchange dictionary
 EXCHANGES = {
     'US': {'suffix': '', 'currency': '$', 'name': 'US Markets'},
     'PA': {'suffix': '.PA', 'currency': '€', 'name': 'Euronext Paris'},
@@ -18,7 +18,7 @@ EXCHANGES = {
 
 
 class BlackScholesModel:
-    # Previous BlackScholesModel class methods remain the same
+    # BlackScholes Model
     def __init__(self, S, K, T, r, sigma):
         self.S = float(S)
         self.K = float(K)
@@ -44,7 +44,7 @@ class BlackScholesModel:
         return (self.K * np.exp(-self.r * self.T) * si.norm.cdf(-self.d2()) -
                 self.S * si.norm.cdf(-self.d1()))
 
-    # Previous Greeks calculations remain the same
+    # Greeks calculations
     def delta_call(self):
         return si.norm.cdf(self.d1())
 
@@ -65,23 +65,46 @@ class BlackScholesModel:
     def vega(self):
         return self.S * si.norm.pdf(self.d1()) * np.sqrt(self.T)
 
-    # New methods for payoff and PnL calculations
-    def plot_option_profiles(self, currency):
-        """Plot payoff and PnL profiles for both call and put options"""
-        # Generate price range for x-axis (from 50% to 150% of current price)
+    def rho_call(self):
+        return self.K * self.T * np.exp(-self.r * self.T) * si.norm.cdf(self.d2())
+
+    def rho_put(self):
+        return -self.K * self.T * np.exp(-self.r * self.T) * si.norm.cdf(-self.d2())
+
+    # Payoff and PnL calculations
+    def plot_option_profiles(self, currency, position_type="long"):
+        """Plot payoff and PnL profiles for both call and put options
+
+        Args:
+            currency (str): Currency symbol for axis labels
+            position_type (str): "long" for buying options or "short" for selling options
+        """
+        # Generate price range for x-axis
         price_range = np.linspace(self.S * 0.5, self.S * 1.5, 100)
 
         # Calculate initial option prices
         call_price = self.call_option_price()
         put_price = self.put_option_price()
 
-        # Calculate payoffs and PnL for call option
-        call_payoff = np.maximum(price_range - self.K, 0)
-        call_pnl = call_payoff - call_price
+        # Calculate payoffs and PnL based on position
+        if position_type.lower() == "long":
+            # Long positions
+            call_payoff = np.maximum(price_range - self.K, 0)
+            call_pnl = call_payoff - call_price
 
-        # Calculate payoffs and PnL for put option
-        put_payoff = np.maximum(self.K - price_range, 0)
-        put_pnl = put_payoff - put_price
+            put_payoff = np.maximum(self.K - price_range, 0)
+            put_pnl = put_payoff - put_price
+
+            position_label = "Long"
+        else:
+            # Short positions
+            call_payoff = np.minimum(self.K - price_range, 0)
+            call_pnl = call_price + call_payoff
+
+            put_payoff = np.minimum(price_range - self.K, 0)
+            put_pnl = put_price + put_payoff
+
+            position_label = "Short"
 
         # Create subplots
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
@@ -91,7 +114,7 @@ class BlackScholesModel:
         ax1.plot(price_range, call_pnl, 'r--', label='PnL')
         ax1.axhline(y=0, color='k', linestyle='-', alpha=0.3)
         ax1.axvline(x=self.K, color='k', linestyle='--', alpha=0.3)
-        ax1.set_title('Call Option Profile')
+        ax1.set_title(f'{position_label} Call Option Profile')
         ax1.set_xlabel(f'Stock Price ({currency})')
         ax1.set_ylabel(f'Profit/Loss ({currency})')
         ax1.legend()
@@ -102,7 +125,7 @@ class BlackScholesModel:
         ax2.plot(price_range, put_pnl, 'r--', label='PnL')
         ax2.axhline(y=0, color='k', linestyle='-', alpha=0.3)
         ax2.axvline(x=self.K, color='k', linestyle='--', alpha=0.3)
-        ax2.set_title('Put Option Profile')
+        ax2.set_title(f'{position_label} Put Option Profile')
         ax2.set_xlabel(f'Stock Price ({currency})')
         ax2.set_ylabel(f'Profit/Loss ({currency})')
         ax2.legend()
@@ -112,7 +135,138 @@ class BlackScholesModel:
         plt.show()
 
 
-# Previous helper functions remain the same
+# Plotting Greeks evolution
+def plot_greeks_evolution(bs_model, currency):
+    """
+    Plot the evolution of Greeks with respect to their associated parameters
+
+    Args:
+        bs_model: BlackScholesModel instance with current parameters
+        currency: Currency symbol for axis labels
+    """
+    # Create a figure with subplots
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+
+    # Stock price range
+    stock_prices = np.linspace(bs_model.S * 0.5, bs_model.S * 1.5, 100)
+
+    # Time to expiration range
+    times = np.linspace(1 / 120, bs_model.T, 100)
+
+    # Volatility range
+    sigmas = np.linspace(0.1, 1.0, 100)
+
+    # Interest rate range
+    rates = np.linspace(0.001, 0.10, 100)
+
+    # 1. Delta vs Stock Price
+    call_deltas = []
+    put_deltas = []
+    for s in stock_prices:
+        temp_model = BlackScholesModel(s, bs_model.K, bs_model.T, bs_model.r, bs_model.sigma)
+        call_deltas.append(temp_model.delta_call())
+        put_deltas.append(temp_model.delta_put())
+
+    axes[0, 0].plot(stock_prices, call_deltas, 'b-', label='Call Delta')
+    axes[0, 0].plot(stock_prices, put_deltas, 'r--', label='Put Delta')
+    axes[0, 0].axvline(x=bs_model.K, color='k', linestyle='--', alpha=0.3)
+    axes[0, 0].axhline(y=0, color='k', linestyle='-', alpha=0.3)
+    axes[0, 0].set_title('Delta vs Stock Price')
+    axes[0, 0].set_xlabel(f'Stock Price ({currency})')
+    axes[0, 0].set_ylabel('Delta')
+    axes[0, 0].legend()
+    axes[0, 0].grid(True, alpha=0.3)
+
+    # 2. Gamma vs Stock Price
+    gammas = []
+    for s in stock_prices:
+        temp_model = BlackScholesModel(s, bs_model.K, bs_model.T, bs_model.r, bs_model.sigma)
+        gammas.append(temp_model.gamma())
+
+    axes[0, 1].plot(stock_prices, gammas, 'g-')
+    axes[0, 1].axvline(x=bs_model.K, color='k', linestyle='--', alpha=0.3)
+    axes[0, 1].set_title('Gamma vs Stock Price')
+    axes[0, 1].set_xlabel(f'Stock Price ({currency})')
+    axes[0, 1].set_ylabel('Gamma')
+    axes[0, 1].grid(True, alpha=0.3)
+
+    # 3. Theta vs Time to Expiration
+    call_thetas = []
+    put_thetas = []
+    for t in times:
+        temp_model = BlackScholesModel(bs_model.S, bs_model.K, t, bs_model.r, bs_model.sigma)
+        call_thetas.append(temp_model.theta_call())
+        put_thetas.append(temp_model.theta_put())
+
+    axes[0, 2].plot(times * 365, call_thetas, 'b-', label='Call Theta')  # Convert to days
+    axes[0, 2].plot(times * 365, put_thetas, 'r--', label='Put Theta')
+    axes[0, 2].set_title('Theta vs Days to Expiration')
+    axes[0, 2].set_xlabel('Days to Expiration')
+    axes[0, 2].set_ylabel(f'Theta ({currency}/day)')
+    axes[0, 2].legend()
+    axes[0, 2].grid(True, alpha=0.3)
+
+    # 4. Vega vs Volatility
+    vegas = []
+    for sigma in sigmas:
+        temp_model = BlackScholesModel(bs_model.S, bs_model.K, bs_model.T, bs_model.r, sigma)
+        vegas.append(temp_model.vega())
+
+    axes[1, 0].plot(sigmas * 100, vegas, 'm-')  # Convert to percentage
+    axes[1, 0].axvline(x=bs_model.sigma * 100, color='k', linestyle='--', alpha=0.3)
+    axes[1, 0].set_title('Vega vs Volatility')
+    axes[1, 0].set_xlabel('Volatility (%)')
+    axes[1, 0].set_ylabel(f'Vega ({currency})')
+    axes[1, 0].grid(True, alpha=0.3)
+
+    # 5. Rho vs Interest Rate
+    call_rhos = []
+    put_rhos = []
+    for r in rates:
+        temp_model = BlackScholesModel(bs_model.S, bs_model.K, bs_model.T, r, bs_model.sigma)
+        call_rhos.append(temp_model.rho_call())
+        put_rhos.append(temp_model.rho_put())
+
+    axes[1, 1].plot(rates * 100, call_rhos, 'b-', label='Call Rho')  # Convert to percentage
+    axes[1, 1].plot(rates * 100, put_rhos, 'r--', label='Put Rho')
+    axes[1, 1].axvline(x=bs_model.r * 100, color='k', linestyle='--', alpha=0.3)
+    axes[1, 1].set_title('Rho vs Interest Rate')
+    axes[1, 1].set_xlabel('Interest Rate (%)')
+    axes[1, 1].set_ylabel(f'Rho ({currency})')
+    axes[1, 1].legend()
+    axes[1, 1].grid(True, alpha=0.3)
+
+    # 6. All Greeks vs Time to Expiration (normalized)
+    deltas_t = []
+    gammas_t = []
+    thetas_t = []
+    vegas_t = []
+    rhos_t = []
+
+    for t in times:
+        temp_model = BlackScholesModel(bs_model.S, bs_model.K, t, bs_model.r, bs_model.sigma)
+        deltas_t.append(temp_model.delta_call())
+        gammas_t.append(temp_model.gamma())
+        thetas_t.append(temp_model.theta_call() / max(abs(np.min(call_thetas)), abs(np.max(call_thetas))))
+        vegas_t.append(temp_model.vega() / max(vegas))
+        rhos_t.append(temp_model.rho_call() / max(abs(np.min(call_rhos)), abs(np.max(call_rhos))))
+
+    axes[1, 2].plot(times * 365, deltas_t, 'b-', label='Delta')
+    axes[1, 2].plot(times * 365, gammas_t, 'g-', label='Gamma')
+    axes[1, 2].plot(times * 365, thetas_t, 'r-', label='Theta')
+    axes[1, 2].plot(times * 365, vegas_t, 'm-', label='Vega')
+    axes[1, 2].plot(times * 365, rhos_t, 'c-', label='Rho')
+    axes[1, 2].set_title('Normalized Greeks vs Days to Expiration')
+    axes[1, 2].set_xlabel('Days to Expiration')
+    axes[1, 2].set_ylabel('Normalized Value')
+    axes[1, 2].legend()
+    axes[1, 2].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+
+
+# Helper functions
 def select_exchange():
     """Let user select the stock exchange"""
     print("\nAvailable Markets:")
@@ -143,7 +297,7 @@ def calculate_historical_volatility(stock_data, window=252):
 
 
 def get_risk_free_rate(exchange):
-    """Returns an approximate risk-free rate based on the market"""
+    """Approximate risk-free rate"""
     rates = {
         'US': 0.05,
         'PA': 0.03,
@@ -155,7 +309,7 @@ def get_risk_free_rate(exchange):
         'MI': 0.03,
         'MC': 0.03
     }
-    return rates.get(exchange, 0.03)
+    return rates.get(exchange, 0.04)
 
 
 def main():
@@ -198,9 +352,23 @@ def main():
         print(f"Call Theta: {currency}{bs.theta_call():.4f}")
         print(f"Put Theta: {currency}{bs.theta_put():.4f}")
         print(f"Vega: {currency}{bs.vega():.4f}")
+        print(f"Call Rho: {bs.rho_call():.4f}")
+        print(f"Put Rho: {bs.rho_put():.4f}")
+
+        # Ask if user wants to go long or short
+        position_type = ""
+        while position_type not in ["long", "short"]:
+            position_type = input("\nDo you want to go long or short on the options? (long/short): ").lower()
+            if position_type not in ["long", "short"]:
+                print("Please enter either 'long' or 'short'.")
 
         # Plot payoff and PnL diagrams
-        bs.plot_option_profiles(currency)
+        bs.plot_option_profiles(currency, position_type)
+
+        # Ask if user wants to see the Greeks evolution
+        see_greeks = input("\nDo you want to see the Greeks evolution graphs? (yes/no): ").lower()
+        if see_greeks.startswith('y'):
+            plot_greeks_evolution(bs, currency)
 
     except Exception as e:
         print(f"Error: {e}")
