@@ -15,13 +15,13 @@ A simple options pricer implementing the Black-Scholes model for European-style 
 - **Comprehensive Options Pricing** - Calculate theoretical prices for European call and put options
 - **Multi-Market Support** - Pricing for US, UK, and European markets with appropriate currency formatting
 - **Position Analysis** - Visualize payoff and PnL profiles for both long and short positions
-- **Complete Greeks Calculation:**
+- **Greeks Calculation:**
   - Delta - Sensitivity to underlying price changes
   - Gamma - Rate of change of Delta
   - Theta - Time decay effect
   - Vega - Sensitivity to volatility changes
   - Rho - Sensitivity to interest rate changes
-- **Advanced Visualization** - Interactive plots showing payoff profiles and Greeks evolution
+- **Visualization** - Plots showing payoff profiles and Greeks evolution
 
 ## Supported Markets
 
